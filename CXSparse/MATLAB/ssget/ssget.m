@@ -30,6 +30,8 @@ function Problem = ssget (matrix, ss_index)
 % get the parameter settings
 %-------------------------------------------------------------------------------
 
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
 params = ssget_defaults ;
 
 % The ss_index.mat file is used by ssget only, not by ssgui.java.
@@ -85,25 +87,46 @@ if (refresh)
         % get a new ss_index.mat file
         tmp = tempname ;                        % download to a temp file first
         old = [ params.topdir 'files' filesep 'ss_index_old.mat' ] ;
-        websave (tmp, indexurl) ;               % download the latest index file
+
+        if (have_octave)
+            urlwrite(indexurl, tmp) ;
+        else
+            websave (tmp, indexurl) ;               % download the latest index file
+        end
+
         try
             movefile (indexfile, old, 'f') ;    % keep a backup of the old index
         catch
             % backup failed, continue anyway
         end
-        movefile ([tmp '.mat'], indexfile, 'f');% move the new index into place
+
+        if (have_octave)
+            movefile ([tmp], indexfile, 'f');% move the new index into place
+        else
+            movefile ([tmp '.mat'], indexfile, 'f');% move the new index into place
+        end
 
         % get a new ssstats.csv file
         tmp = tempname ;                        % download to a temp file first
         old = [ params.topdir 'files' filesep 'ssstats_old.csv' ] ;
-        websave (tmp, staturl) ;                % download the latest stats file
+
+        if (have_octave)
+            urlwrite(staturl, tmp) ;
+        else
+            websave (tmp, staturl) ;            % download the latest stats file
+        end
+
         try
             movefile (statfile, old, 'f') ;     % keep a backup of the old stats
         catch
             % backup failed, continue anyway
         end
-        movefile ([tmp '.csv'], statfile, 'f') ;% move the new index into place
 
+        if (have_octave)
+            movefile ([tmp], statfile, 'f') ;% move the new index into place
+        else
+            movefile ([tmp '.csv'], statfile, 'f') ;% move the new index into place
+        end
     catch me
         err = me.message ;
     end
@@ -191,8 +214,14 @@ if (~exist (matfile, 'file'))
     fprintf ('downloading %s\n', maturl) ;
     fprintf ('to %s\n', matfile) ;
     tmp = tempname ;                        % download to a temp file first
-    websave (tmp, maturl) ;
-    movefile ([tmp '.mat'], matfile, 'f') ; % move the new matrix into place
+
+    if (have_octave)
+        urlwrite(maturl, tmp) ;
+        movefile ([tmp], matfile, 'f') ; % move the new matrix into place
+    else
+        websave(tmp, maturl) ;
+        movefile ([tmp, '.mat'], matfile, 'f') ; % move the new matrix into place
+    end
 end
 
 load (matfile) ;
