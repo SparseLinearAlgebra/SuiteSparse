@@ -26,6 +26,8 @@ function cs_install (do_pause)
 % Copyright (c) 2006-2022, Timothy A. Davis. All Rights Reserved.
 % SPDX-License-Identifier: LGPL-2.1+
 
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
 fprintf ('Compiling and installing CSparse\n') ;
 if (nargin < 1)
     do_pause = 0 ;
@@ -37,9 +39,23 @@ end
 addpath ([pwd '/CSparse']) ;
 addpath ([pwd '/Demo']) ;
 
-if (verLessThan ('matlab', '8.4'))
-    fprintf ('ssget not installed (MATLAB 8.4 or later required)\n') ;
+if (have_octave)
+    warning ("off", "Octave:possible-matlab-short-circuit-operator")
+    install_ssget
 else
+    if (verLessThan ('matlab', '8.4'))
+        fprintf ('ssget not installed (MATLAB 8.4 or later required)\n') ;
+    else
+        install_ssget
+    end
+end
+
+cd ('CSparse') ;
+cs_make (1) ;
+cd ('../Demo') ;
+cs_demo (do_pause)
+
+function install_ssget ()
     % install ssget, unless it's already in the path
     try
         % if this fails, then ssget is not yet installed
@@ -59,9 +75,3 @@ else
             fprintf ('ssget not installed\n') ;
         end
     end
-end
-
-cd ('CSparse') ;
-cs_make (1) ;
-cd ('../Demo') ;
-cs_demo (do_pause)

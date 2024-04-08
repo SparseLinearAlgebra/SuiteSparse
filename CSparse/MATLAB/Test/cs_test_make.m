@@ -9,6 +9,8 @@ function cs_test_make (force)
 % CSparse, Copyright (c) 2006-2022, Timothy A. Davis. All Rights Reserved.
 % SPDX-License-Identifier: LGPL-2.1+
 
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
 try
     % ispc does not appear in MATLAB 5.3
     pc = ispc ;
@@ -17,12 +19,18 @@ catch
     pc = ~isunix ;
 end
 
+mexcmd = 'mex'
 if (~isempty (strfind (computer, '64')))
     fprintf ('Compiling CSparse (64-bit)\n') ;
-    mexcmd = 'mex -largeArrayDims' ;
+    if (~have_octave)
+        mexcmd = [mexcmd ' -largeArrayDims'] ;
+    end
 else
     fprintf ('Compiling CSparse (32-bit)\n') ;
-    mexcmd = 'mex' ;
+end
+
+if (have_octave)
+    warning ("off", "Octave:possible-matlab-short-circuit-operator")
 end
 
 if (pc)

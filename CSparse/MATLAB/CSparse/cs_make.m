@@ -42,6 +42,8 @@ function [objfiles, timestamp_out] = cs_make (f)
 % CSparse, Copyright (c) 2006-2022, Timothy A. Davis. All Rights Reserved.
 % SPDX-License-Identifier: LGPL-2.1+
 
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
 try
     % ispc does not appear in MATLAB 5.3
     pc = ispc ;
@@ -50,17 +52,23 @@ catch
     pc = ~isunix ;
 end
 
+mexcmd = 'mex'
 if (~isempty (strfind (computer, '64')))
     fprintf ('Compiling CSparse (64-bit)\n') ;
-    mexcmd = 'mex -largeArrayDims' ;
+
+    if (~have_octave)
+        mexcmd = [mexcmd ' -largeArrayDims'] ;
+    end
 else
     fprintf ('Compiling CSparse (32-bit)\n') ;
-    mexcmd = 'mex' ;
 end
 
 % MATLAB 8.3.0 now has a -silent option to keep 'mex' from burbling too much
-if (~verLessThan ('matlab', '8.3.0'))
-    mexcmd = [mexcmd ' -silent'] ;
+if (have_octave)
+    mexcmd = [mexcmd ' --silent '] ;
+    warning("off", "Matlab-style short-circuit operation performed for operator |")
+elseif (~verLessThan ('matlab', '8.3.0'))
+    mexcmd = [mexcmd ' -silent '] ;
 end
 
 % CSparse source files, in ../../Source, such as ../../Source/cs_add.c.

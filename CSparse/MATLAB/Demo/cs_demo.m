@@ -31,16 +31,18 @@ fprintf ('\n\n-------------------------------------------------------\n') ;
 help cs_demo3
 cs_demo3 (do_pause, matrixpath) ;
 
+addpath("./private")
+
 fprintf ('\n\n-------------------------------------------------------\n') ;
-help private/ex_1
+help ex_1
 ex_1
 
 fprintf ('\n\n-------------------------------------------------------\n') ;
-help private/ex2
+help ex2
 ex2
 
 fprintf ('\n\n-------------------------------------------------------\n') ;
-help private/ex3
+help ex3
 ex3
 
 fprintf ('\nAll CSparse demos finished.\n') ;
