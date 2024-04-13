@@ -10,15 +10,24 @@ function amd_make
 % Iain S. Duff.  All Rights Reserved.
 % SPDX-License-Identifier: BSD-3-clause
 
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
 details = 0 ;	    % 1 if details of each command are to be printed
 
 d = '' ;
-if (~isempty (strfind (computer, '64')))
+
+if (~isempty (strfind (computer, '64')) && ~have_octave)
     d = '-largeArrayDims' ;
 end
 
-% MATLAB 8.3.0 now has a -silent option to keep 'mex' from burbling too much
-if (~verLessThan ('matlab', '8.3.0'))
+if (have_octave)
+    d = ['-DOCTAVE ' d] ;
+end
+
+if (have_octave)
+    d = ['--silent ' d] ;
+elseif (~verLessThan ('matlab', '8.3.0'))
+    % MATLAB 8.3.0 now has a -silent option to keep 'mex' from burbling too much
     d = ['-silent ' d] ;
 end
 

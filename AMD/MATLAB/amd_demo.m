@@ -18,6 +18,8 @@ function amd_demo
 % First, print the help information for AMD
 help amd2
 
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
 % Get the Harwell/Boeing can_24 matrix.
 
 load can_24
@@ -56,7 +58,11 @@ spy (R') ;
 title ('Cholesky factor, L') ;
 
 subplot (2,2,4) ;
-treeplot (parent) ;
+if (have_octave)
+    treeplot (parent') ;
+else
+    treeplot (parent) ;
+end
 title ('elimination tree') ;
 
 % results from symbfact
