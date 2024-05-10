@@ -53,10 +53,14 @@
 
 #include "umfpack.h"
 #include "mex.h"
-#include "matrix.h"
 #include <string.h>
 #include <math.h>
 #include <float.h>
+#include <stdio.h>
+
+#ifndef OCTAVE
+#include "matrix.h"
+#endif
 
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))

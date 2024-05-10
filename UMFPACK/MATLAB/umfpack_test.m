@@ -9,7 +9,9 @@ function umfpack_test (nmat)
 % UMFPACK, Copyright (c) 2005-2022, Timothy A. Davis, All Rights Reserved.
 % SPDX-License-Identifier: GPL-2.0+
 
-index = ssget ;
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
+index = ssget('refresh') ;
 
 f = find (index.nrows == index.ncols) ;
 [ignore, i] = sort (index.nrows (f)) ;
@@ -42,6 +44,12 @@ for k = 1:nmat
 
         Prob = ssget (i) ;
         A = Prob.A ;
+
+        % Octave cannot process matrices whose version is 7.3
+        if (have_octave && ~issparse(A))
+            continue ;
+        end
+
         n = size (A,1) ;
 
         b = rand (1,n) ;
@@ -57,7 +65,19 @@ for k = 1:nmat
 	title ('A')
 
 	subplot (2,2,2)
-	treeplot (Fr (1:end-1,2)') ;
+
+	Fr_slice = Fr(1:end-1, 2)'
+	if (~have_octave)
+		treeplot(Fr_slice)
+	else
+		% Octave don't support treeplot with empty vector
+		if (~isempty(Fr_slice))
+			treeplot(Fr_slice)
+		else
+			plot([])
+		end
+	end
+
 	title ('supercolumn etree')
 
 	%-----------------------------------------------------------------------

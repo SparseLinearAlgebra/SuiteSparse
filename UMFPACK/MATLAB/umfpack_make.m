@@ -18,6 +18,8 @@ function umfpack_make
 % UMFPACK, Copyright (c) 2005-2022, Timothy A. Davis, All Rights Reserved.
 % SPDX-License-Identifier: GPL-2.0+
 
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
 metis_path = '../../CHOLMOD/SuiteSparse_metis' ;
 with_cholmod = exist (metis_path, 'dir') ;
 
@@ -25,12 +27,14 @@ details = 0 ;   % set to 1 to print out each mex command as it's executed
 
 flags = '' ;
 is64 = ~isempty (strfind (computer, '64')) ;
-if (is64)
+if (is64 && ~have_octave)
     flags = ' -largeArrayDims' ;
 end
 
-% MATLAB 8.3.0 now has a -silent option to keep 'mex' from burbling too much
-if (~verLessThan ('matlab', '8.3.0'))
+if (have_octave)
+    flags = ['--silent', flags] ;
+elseif (~verLessThan ('matlab', '8.3.0'))
+    % MATLAB 8.3.0 now has a -silent option to keep 'mex' from burbling too much
     flags = ['-silent ' flags] ;
 end
 
@@ -41,7 +45,11 @@ end
 
 v = version ;
 
-fprintf ('Compiling UMFPACK for MATLAB Version %s\n', v) ;
+if (have_octave)
+    fprintf ('Compiling UMFPACK for Octave Version %s\n', v) ;
+else
+    fprintf ('Compiling UMFPACK for MATLAB Version %s\n', v) ;
+end
 
 if (ispc)
     obj = 'obj' ;
@@ -57,41 +65,63 @@ kk = 0 ;
 
 % This is exceedingly ugly.  The MATLAB mex command needs to be told where to
 % find the LAPACK and BLAS libraries, which is a real portability nightmare.
-
 if (ispc)
     % BLAS/LAPACK functions have no underscore on Windows
     flags = [flags ' -DBLAS_NO_UNDERSCORE'] ;
-    if (verLessThan ('matlab', '7.5'))
-        lapack = 'libmwlapack.lib' ;
-    elseif (verLessThan ('matlab', '9.5'))
-        lapack = 'libmwlapack.lib libmwblas.lib' ;
+
+    if (have_octave)
+        lapack = '-llapack -lblas' ;
     else
-        lapack = '-lmwlapack -lmwblas' ;
+        if (verLessThan ('matlab', '7.5'))
+            lapack = 'libmwlapack.lib' ;
+        elseif (verLessThan ('matlab', '9.5'))
+            lapack = 'libmwlapack.lib libmwblas.lib' ;
+        else
+            lapack = '-lmwlapack -lmwblas' ;
+        end
     end
+
 else
     % BLAS/LAPACK functions have an underscore suffix
     flags = [flags ' -DBLAS_UNDERSCORE'] ;
-    if (verLessThan ('matlab', '7.5'))
-        lapack = '-lmwlapack' ;
+
+    if (have_octave)
+        lapack = '-llapack -lblas' ;
     else
-        lapack = '-lmwlapack -lmwblas' ;
+        if (verLessThan ('matlab', '7.5'))
+            lapack = '-lmwlapack' ;
+        else
+            lapack = '-lmwlapack -lmwblas' ;
+        end
     end
 end
 
-if (is64 && ~verLessThan ('matlab', '7.8'))
-    % versions 7.8 and later on 64-bit platforms use a 64-bit BLAS
-    fprintf ('with 64-bit BLAS\n') ;
-    flags = [flags ' -DBLAS64'] ;
+if (is64)
+
+    if (have_octave)
+        fprintf ('with 64-bit BLAS\n') ;
+        flags = [flags ' -DBLAS64'] ;
+    elseif (~verLessThan ('matlab', '7.8'))
+        % versions 7.8 and later on 64-bit platforms use a 64-bit BLAS
+        fprintf ('with 64-bit BLAS\n') ;
+        flags = [flags ' -DBLAS64'] ;
+    else
+        % other versions of MATLAB use a 32-bit BLAS
+        flags = [flags ' -DBLAS32'] ;
+    end
 else
     % other versions of MATLAB use a 32-bit BLAS
     flags = [flags ' -DBLAS32'] ;
+end
+
+if (have_octave)
+    flags = [flags ' -DOCTAVE -DNRECIPROCAL']
 end
 
 if (~(ispc || ismac))
     % for POSIX timing routine
     lapack = [lapack ' -lrt'] ;
 end
-
 %-------------------------------------------------------------------------------
 % Source and include directories
 %-------------------------------------------------------------------------------
