@@ -28,7 +28,10 @@
 
 #include "camd.h"
 #include "mex.h"
+
+#ifndef OCTAVE
 #include "matrix.h"
+#endif
 
 void mexFunction
 (

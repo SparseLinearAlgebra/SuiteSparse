@@ -10,6 +10,8 @@ function camd_make
 % Amestoy, and Iain S. Duff.  All Rights Reserved.
 % SPDX-License-Identifier: BSD-3-clause
 
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
 details = 0 ;	    % 1 if details of each command are to be printed
 
 d = '' ;
@@ -17,11 +19,19 @@ if (~isempty (strfind (computer, '64')))
     d = '-largeArrayDims' ;
 end
 
-% MATLAB 8.3.0 now has a -silent option to keep 'mex' from burbling too much
-if (~verLessThan ('matlab', '8.3.0'))
-    d = ['-silent ' d] ;
+if (have_octave)
+    d = ['--silent ' d] ;
+else
+    % MATLAB 8.3.0 now has a -silent option to keep 'mex' from burbling too much
+    if (~verLessThan ('matlab', '8.3.0'))
+        d = ['-silent ' d] ;
+    end
 end
 
+if (have_octave)
+    d = ['-DOCTAVE ' d] ;
+end
+    
 i = sprintf ('-I../Include -I../../SuiteSparse_config') ;
 cmd = sprintf ('mex -O %s -output camd %s camd_mex.c %s', d, i, ...
     '../../SuiteSparse_config/SuiteSparse_config.c') ;

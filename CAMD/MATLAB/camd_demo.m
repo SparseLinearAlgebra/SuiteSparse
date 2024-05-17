@@ -25,6 +25,8 @@ A = spconvert (can_24) ;
 
 n = size (A,1) ;
 
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
 rand ('state', 0) ;
 C = irand (6, n) ;
 
@@ -70,11 +72,15 @@ fprintf ('Analyze A(p,p) with MATLAB symbfact routine:\n') ;
 [cn, height, parent, post, R] = symbfact (A(p,p)) ;
 
 subplot (2,2,3) ;
-spy (R') ; 
+spy (R') ;
 title ('Cholesky factor L') ;
 
 subplot (2,2,4) ;
-treeplot (parent) ;
+if (have_octave)
+  treeplot (parent')
+else
+  treeplot(parent)
+end
 title ('etree') ;
 
 % results from symbfact
