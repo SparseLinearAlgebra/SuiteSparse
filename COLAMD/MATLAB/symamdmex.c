@@ -41,8 +41,11 @@
 
 #include "colamd.h"
 #include "mex.h"
-#include "matrix.h"
 #include <stdlib.h>
+
+#ifndef OCTAVE
+#include "matrix.h"
+#endif
 
 /* ========================================================================== */
 /* === symamd mexFunction =================================================== */

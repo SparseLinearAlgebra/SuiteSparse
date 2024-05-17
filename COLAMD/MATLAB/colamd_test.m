@@ -20,6 +20,8 @@ function colamd_test
 % Acknowledgements: This work was supported by the National Science Foundation,
 % under grants DMS-9504974 and DMS-9803599.
 
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
 help colamd_test
 
 
@@ -32,6 +34,10 @@ help colamd_test
     end
     cmd = sprintf (...
         'mex -O %s -I../../SuiteSparse_config -I../Include ', d) ;
+    if(have_octave)
+        warning ("off", "Octave:possible-matlab-short-circuit-operator")
+        cmd = [cmd '-DOCTAVE ']
+    end
     src = '../Source/colamd_l.c ../../SuiteSparse_config/SuiteSparse_config.c' ;
     if (~(ispc || ismac))
         % for POSIX timing routine
@@ -422,6 +428,8 @@ function A = rand_matrix (nmax, mmax, mtype, drows, dcols)
 % mtype 2: rectangular
 % mtype 3: symmetric (mmax is ignored)
 
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
 n = irand (nmax) ;
 if (mtype ~= 2)
     % square
@@ -430,7 +438,11 @@ else
     m = irand (mmax) ;
 end
 
-A = sprand (m, n, 10 / max (m,n)) ;
+if (have_octave)
+  A = sprand (m, n, rand() / 10) ;
+else
+  A = sprand (m, n, 10 / max(m, n)) ;
+end
 
 if (drows > 0)
     % add dense rows

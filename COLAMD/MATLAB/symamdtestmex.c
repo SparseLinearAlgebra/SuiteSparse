@@ -54,9 +54,12 @@
 
 #include "colamd.h"
 #include "mex.h"
-#include "matrix.h"
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef OCTAVE
+#include "matrix.h"
+#endif
 
 static void dump_matrix
 (

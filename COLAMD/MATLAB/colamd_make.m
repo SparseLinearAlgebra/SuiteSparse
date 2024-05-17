@@ -13,15 +13,25 @@ function colamd_make
 % Acknowledgements: This work was supported by the National Science Foundation,
 % under grants DMS-9504974 and DMS-9803599.
 
+have_octave = (exist ('OCTAVE_VERSION', 'builtin') == 5) ;
+
 details = 0 ;	    % 1 if details of each command are to be printed
 d = '' ;
-if (~isempty (strfind (computer, '64')))
+if (~have_octave && ~isempty (strfind (computer, '64')))
     d = '-largeArrayDims' ;
 end
 
-% MATLAB 8.3.0 now has a -silent option to keep 'mex' from burbling too much
-if (~verLessThan ('matlab', '8.3.0'))
-    d = ['-silent ' d] ;
+if (have_octave)
+    d = ['--silent ' d];
+else
+    % MATLAB 8.3.0 now has a -silent option to keep 'mex' from burbling too much
+    if (~verLessThan ('matlab', '8.3.0'))
+        d = ['-silent ' d] ;
+    end
+end
+
+if (have_octave)
+    d = ['-DOCTAVE ' d]
 end
 
 src = '../Source/colamd_l.c ../../SuiteSparse_config/SuiteSparse_config.c' ;
